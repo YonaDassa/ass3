@@ -1,21 +1,15 @@
 import biuoop.GUI;
-import biuoop.KeyboardSensor;
-
 import java.awt.Color;
 
 public class Ass3Game {
 
-    public static final int WIDTH = 800;
-    public static final int HEIGHT = 600;
-    public static final int PADDLE_WIDTH = 100;
-    public static final int PADDLE_HEIGHT = 10;
-    public static final int BALL_RADIUS = 7;
 
     public static void main(String[] args) {
-        GUI gui = new GUI("Arkanoid", WIDTH, HEIGHT);
+        GUI gui = new GUI("Arkanoid", 800, 600); // Create a single GUI instance
+
         GameEnvironment environment = new GameEnvironment();
         SpriteCollection sprites = new SpriteCollection();
-        Game game = new Game(environment, sprites);
+        Game game = new Game(environment, sprites, gui); // Pass the GUI instance to the Game constructor
 
         addPaddle(game, gui);
         addBalls(game, gui);
@@ -33,6 +27,7 @@ public class Ass3Game {
 
         Paddle paddle = new Paddle(new Rectangle(paddleStartPoint, paddleWidth, paddleHeight, Color.GREEN), gui.getKeyboardSensor(), paddleSpeed);
         game.addSprite(paddle);
+        game.addCollidable(paddle);
     }
 
 
@@ -44,7 +39,7 @@ public class Ass3Game {
         Color[] colors = {Color.GRAY, Color.RED, Color.YELLOW, Color.GREEN, Color.BLUE, Color.PINK};
 
         for (int i = 0; i < 6; i++) {
-            for (int j = 0; j < 10; j++) {  // 10 blocks per row
+            for (int j = 0; j < 10 - i; j++) {  // Adjust the number of blocks per row
                 Point upperLeft = new Point(j * blockWidth + 50, topMargin + i * blockHeight);
                 Rectangle rect = new Rectangle(upperLeft, blockWidth, blockHeight, colors[i % colors.length]);
                 Block block = new Block(rect, colors[i % colors.length]);
@@ -53,6 +48,7 @@ public class Ass3Game {
             }
         }
     }
+
 
     private static void addBalls(Game game, GUI gui) {
         // Define the initial position and velocity of the balls
@@ -72,7 +68,4 @@ public class Ass3Game {
         ball2.setVelocity(velocity2);
         game.addSprite(ball2);
     }
-
-
-
 }

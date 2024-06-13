@@ -118,9 +118,6 @@ public class Ball implements Sprite {
      *
      * @return the velocity vector of the ball
      */
-    public Velocity getV() {
-        return this.v;
-    }
 
     public int getR() {
         return R;
@@ -137,79 +134,47 @@ public class Ball implements Sprite {
      * If the ball collides with an object, its velocity  is updated accordingly.
      */
     public void moveOneStep() {
-        CollisionInfo info;
-        Velocity newVelocity;
-        // if the width is too small.
-        Line trajectory = calculateTrajectory();
-        Point newPosition = this.v.applyToPoint(this.center);
+        Point nextPoint = this.v.applyToPoint(this.center);
+        Line trajectory = new Line(this.center, nextPoint);
+        CollisionInfo collision = this.environment.getClosestCollision(trajectory);
 
-        double newX = newPosition.getX();
-        double newY = newPosition.getY();
+        if (collision != null) {
+            Point collisionPoint = collision.collisionPoint();
+            Collidable collidable = collision.collisionObject();
 
-
-        if (this.environment.getClosestCollision(trajectory) == null) {
-            this.center = this.getVelocity().applyToPoint(this.center);
+            // Adjust the velocity based on the collision
+            this.v = collidable.hit(collisionPoint, this.v);
+            this.center = this.v.applyToPoint(this.center);
         } else {
-            info = this.environment.getClosestCollision(trajectory);
-            newVelocity = info.collisionObject().hit( info.collisionPoint(), this.v);
-
-            if (Math.signum(this.v.getdy()) == Math.signum(newVelocity.getdy())) {
-                if (this.v.getdx() > 0) {
-                    newX = info.collisionPoint().getX() - this.R * 1.01;
-                } else {
-                    newX = info.collisionPoint().getX() + this.R * 1.01;
-                }
-                double ratioX = 0;
-//                this.center = new Point(newX, this.center.getY() + ratioX * (info.collisionPoint().getY()
-//                        - this.center.getY()));
-            } else if (Math.signum(this.v.getdx()) == Math.signum(newVelocity.getdx())) {
-                if (this.v.getdy() > 0) {
-                    newY = info.collisionPoint().getY() - this.R * 1.01;
-                } else {
-                    newY = info.collisionPoint().getY() + this.R * 1.01;
-                }
-                double ratioY = 0;
-//                this.center = new Point(this.center.getX() + ratioY * (info.collisionPoint().getX()
-//                        - this.center.getX()), newY);
-
-            } else { //padlle
-                this.center = new Point(info.collisionPoint().getX(),
-                        info.collisionObject().getCollisionRectangle().getUpperLeft().getY() - this.R);
-
+            // Check for collision with walls
+            if (this.center.getX() - this.R <= 0 || this.center.getX() + this.R >= 800) {
+                this.v = new Velocity(-this.v.getdx(), this.v.getdy());
             }
-            this.setVelocity(newVelocity.getdx(), newVelocity.getdy());
-        }
-        if (newX - this.R <= 0 || newX + this.R >= 800) {
-            // Reverse the horizontal velocity to make the ball bounce back
-            this.v = new Velocity(-this.v.getdx(), this.v.getdy());
-        }
-        if (newY - this.R <= 0 || newY + this.R >= 600) {
-            // Reverse the vertical velocity to make the ball bounce back
-            this.v = new Velocity(this.v.getdx(), -this.v.getdy());
-        }
+            if (this.center.getY() - this.R <= 0 || this.center.getY() + this.R >= 600) {
+                this.v = new Velocity(this.v.getdx(), -this.v.getdy());
+            }
 
-        // Update the ball's center position
-        this.center = this.v.applyToPoint(this.center);
+            // Move the ball
+            this.center = nextPoint;
+        }
     }
 
+    public void addToGame(Game game) {
+        game.addSprite(this);
+    }
     public Velocity getVelocity() {
         return this.v;
 
     }
 
-    public void addToGame(Game g) {
-        g.addSprite(this);
-    }
+
 
     /**
      * Returns the radius of the ball.
      *
      * @return the size of the ball.
      */
-    public int getSize() {
-        return this.R;
 
-    }
 
     /**
      * Sets the velocity of the ball to the given dx and dy values.

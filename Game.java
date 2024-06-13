@@ -1,10 +1,13 @@
 import biuoop.GUI;
 import biuoop.DrawSurface;
 import biuoop.Sleeper;
+import biuoop.KeyboardSensor;
 
 import java.awt.Color;
 
 public class Game {
+    public static final double SCREEN_WIDTH = 800;
+    public static final double SCREEN_HEIGHT = 600;
     private SpriteCollection sprites;
     private GameEnvironment environment;
     private GUI gui;
@@ -23,6 +26,12 @@ public class Game {
         this.gui = new GUI("Game", 800, 600);
     }
 
+    public Game(GameEnvironment environment, SpriteCollection sprite, GUI gui) {
+        this.sprites = sprite;
+        this.environment = environment;
+        this.gui = gui; // Store the GUI instance
+    }
+
     public void addCollidable(Collidable c) {
         this.environment.addCollidable(c);
     }
@@ -32,31 +41,41 @@ public class Game {
     }
 
     public void initialize() {
-        Point center = new Point(400, 300);
-        Ball ball = new Ball(400, 550, 5, Color.blue, environment);
-        ball.setVelocity(5, 5);
-        Ball ball2 = new Ball(400, 550, 5, Color.RED, environment);
-        ball2.setVelocity(6, 6);
+        // Create a new DrawSurface
+        DrawSurface background = gui.getDrawSurface();
 
-        Block[] blocks = new Block[10];
-        for (int i = 0; i < blocks.length; i++) {
-            blocks[i] = new Block(new Rectangle(new Point(50 + i * 70, 200), 60, 30, Color.GREEN));
-            blocks[i].addToGame(this);
-        }
+        // Fill the background with the desired color
+        background.setColor(Color.BLUE);
+        background.fillRectangle(0, 0, (int) SCREEN_WIDTH, (int) SCREEN_HEIGHT);
 
-        Paddle paddle = new Paddle(new Rectangle(new Point(350, 575), 100, 10, Color.GREEN), gui.getKeyboardSensor(), 5);
+        // Set the background as the GUI's drawing surface
+        gui.show(background);
+
+        // Create blocks for the edges
+        Block topBlock = new Block(new Rectangle(new Point(0, 0), SCREEN_WIDTH, 20, Color.GRAY));
+        Block bottomBlock = new Block(new Rectangle(new Point(0, SCREEN_HEIGHT - 20), SCREEN_WIDTH, 20, Color.GRAY));
+        Block leftBlock = new Block(new Rectangle(new Point(0, 20), 20, SCREEN_HEIGHT - 40, Color.GRAY));
+        Block rightBlock = new Block(new Rectangle(new Point(SCREEN_WIDTH - 20, 20), 20, SCREEN_HEIGHT - 40, Color.GRAY));
+
+        int paddleSpeed = 10; // Example paddle speed
+        Paddle paddle = new Paddle(new Rectangle(new Point(350, 575), 100, 10, Color.YELLOW),
+                gui.getKeyboardSensor(), paddleSpeed);
+
+
+        // Add blocks to the game environment
+        environment.addCollidable(topBlock);
+        environment.addCollidable(bottomBlock);
+        environment.addCollidable(leftBlock);
+        environment.addCollidable(rightBlock);
+
+        // Add paddle to the game
         paddle.addToGame(this);
-        ball.addToGame(this);
-        ball2.addToGame(this);
 
-        Block[] arrBlockSides = new Block[4];
-        arrBlockSides[0] = new Block(new Rectangle(new Point(0, 0), 600, 20, Color.gray)); // top
-        arrBlockSides[1] = new Block(new Rectangle(new Point(0, 20 + 2), 20, 600, Color.gray)); // side
-        arrBlockSides[2] = new Block(new Rectangle(new Point(20 + 2, 600 - 20), 800 - 2 * 50 - 2, 20, Color.gray));
-        arrBlockSides[3] = new Block(new Rectangle(new Point(800 - 20 + 2, 20 + 2), 20, 600 - 20, Color.gray));
-        for (int i = 0; i < 4; i++) {
-            arrBlockSides[i].addToGame(this);
-        }
+        // Add blocks to the sprite collection to draw them
+        sprites.addSprite(topBlock);
+        sprites.addSprite(bottomBlock);
+        sprites.addSprite(leftBlock);
+        sprites.addSprite(rightBlock);
     }
 
     public void run() {
@@ -90,11 +109,8 @@ public class Game {
         return sprites;
     }
 
-    public static void main(String[] args) {
-        System.out.println("Starting game initialization...");
-        Game game = new Game();
-        game.initialize();
-        System.out.println("Game initialized successfully.");
-        game.run();
+    public GUI getGui() {
+        return this.gui;
+
     }
 }
